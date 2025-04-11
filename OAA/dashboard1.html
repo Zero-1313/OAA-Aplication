@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OAA Mobile Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0f4ff;
+      color: #1e2a3a;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      background: #1e2a3a;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .burger {
+      font-size: 1.5rem;
+      cursor: pointer;
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 1101;
+      background: #1e2a3a;
+      color: white;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -100vw;
+      width: 70vw;
+      max-width: 250px;
+      height: 100vh;
+      background: #1e2a3a;
+      color: #fff;
+      padding: 4rem 1rem 2rem;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    .sidebar.open {
+      left: 0;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 998;
+      display: none;
+    }
+    .overlay.show {
+      display: block;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      margin: 1rem 0;
+      font-size: 1.1rem;
+    }
+    .content {
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .profile-img {
+      width: 100%;
+      max-width: 250px;
+      border-radius: 20px;
+      display: block;
+      margin: 1rem auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      color: #1e2a3a;
+    }
+    .card p {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+    @media (min-width: 600px) {
+      .content {
+        max-width: 600px;
+        margin: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="burger" id="burgerBtn" onclick="toggleSidebar()">&#9776;</div>
+
+  <div class="header">
+    <h2>OAA</h2>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <div class="sidebar" id="sidebar">
+    <a href="#">Dashboard</a>
+    <a href="../Chat AI/index.html">Chat AI</a>
+    <a href="../Massage/list.html">Massage</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <div class="content">
+    <img src="https://i.ibb.co.com/N69Qb8Y9/6891677a-e217-4681-8f8c-4ebdc5d9ccf6.jpg" alt="Profile" class="profile-img" id="profileImg">
+    <div class="card"><h3>Nama</h3><p id="studentName">Loading...</p></div>
+    <div class="card"><h3>Peringkat</h3><p id="rank"># -</p></div>
+    <div class="card"><h3>Kemampuan Akademik</h3><p id="academic">-</p></div>
+    <div class="card"><h3>Kemampuan Fisik</h3><p id="physical">-</p></div>
+    <div class="card"><h3>IQ / Kecerdasan</h3><p id="iq">-</p></div>
+    <div class="card"><h3>Adaptability</h3><p id="adaptability">-</p></div>
+    <div class="card"><h3>Kontribusi Sosial</h3><p id="social">-</p></div>
+    <div class="card"><h3>Skor Keseluruhan</h3><p id="overall">-</p></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5IIVDK0RaEjW32-1dykYkJTKp39uHaa8",
+      authDomain: "oaa-aplication.firebaseapp.com",
+      databaseURL: "https://oaa-aplication-default-rtdb.firebaseio.com/",
+      projectId: "oaa-aplication",
+      storageBucket: "oaa-aplication.firebasestorage.app",
+      messagingSenderId: "879040519212",
+      appId: "1:879040519212:web:d6d01859fe1c7e38d24589",
+      measurementId: "G-FRTYCPT5ZY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const uid = user.uid;
+        db.ref('users/' + uid).once('value').then(snapshot => {
+          const data = snapshot.val();
+          if (data) {
+            document.getElementById('studentName').textContent = data.name;
+            document.getElementById('academic').textContent = data.academic;
+            document.getElementById('physical').textContent = data.physical;
+            document.getElementById('iq').textContent = data.iq;
+            document.getElementById('adaptability').textContent = data.adaptability;
+            document.getElementById('social').textContent = data.social;
+            const overall = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
+            document.getElementById('overall').textContent = overall;
+          }
+        });
+      } else {
+        window.location.href = '../index.html';
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = '../index.html';
+      });
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      const burgerBtn = document.getElementById('burgerBtn');
+
+      const isOpen = sidebar.classList.contains('open');
+      if (!isOpen) {
+        sidebar.classList.add('open');
+        overlay.classList.add('show');
+        burgerBtn.innerHTML = '&times;';
+      } else {
+        closeSidebar();
+      }
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('burgerBtn').innerHTML = '&#9776;';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAA - Chat List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f0f4ff;
+      padding: 1rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #1e2a3a;
+    }
+    .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+    .card {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+}
+    .card img {
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+    .card h3 {
+  margin: 0.2rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e2a3a;
+}
+    .card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .chat-btn {
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.8rem;
+  background: #1e2a3a;
+  color: white;
+  border: none;
+  border-radius: 1rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+    .chat-btn:hover {
+      background: #3a4b61;
+    }
+  .burger {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  background: #1e2a3a;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  z-index: 1001;
+  cursor: pointer;
+}
+.sidebar {
+  left: -100vw !important;
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100%;
+  background: #1e2a3a;
+  color: white;
+  padding: 2rem 1rem;
+  z-index: 1000;
+  transition: left 0.3s ease;
+}
+.sidebar.open {
+  left: 0 !important;
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+.overlay.show {
+  display: block;
+}
+</style>
+</head>
+<body>
+  <button class="burger" onclick="toggleSidebar()" style="z-index:1002; position:fixed; top:1rem; left:1rem; background:#1e2a3a; color:white; padding:0.5rem 1rem; border:none; border-radius:8px;">☰</button>
+  <div class="sidebar" id="sidebar" style="left:-100vw">
+    <button onclick="closeSidebar()" style="background:none;border:none;color:white;font-size:1.2rem;margin-bottom:1rem;margin-top:3rem;">← Kembali</button>
+    <a href="../dashboard.html" style="display:block;color:white;margin-bottom:1rem;text-decoration:none;">🏠 Dashboard</a>
+    <a href="#" onclick="logout()" style="display:block;color:white;text-decoration:none;">🚪 Logout</a>
+  </div>
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+  <h1>Daftar Siswa</h1>
+  <input type="text" id="searchInput" placeholder="Cari nama siswa..." style="width:90%;margin:1rem auto;display:block;padding:0.6rem 1rem;border-radius:12px;border:1px solid #ccc;font-size:1rem;max-width:100%;">
+  <div class="grid" id="userList"></div>
+
+  <script>
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("overlay").classList.add("show");
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+function logout() {
+  firebase.auth().signOut().then(() => {
+    window.location.href = "../login.html";
+  });
+}
+
+const firebaseConfig = {
+      apiKey: "AIzaSyB5IIVDK0RaEjW32-1dykYkJTKp39uHaa8",
+      authDomain: "oaa-aplication.firebaseapp.com",
+      databaseURL: "https://oaa-aplication-default-rtdb.firebaseio.com/",
+      projectId: "oaa-aplication",
+      storageBucket: "oaa-aplication.appspot.com",
+      messagingSenderId: "879040519212",
+      appId: "1:879040519212:web:d6d01859fe1c7e38d24589"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const userList = document.getElementById("userList");
+
+    auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "../login.html";
+    return;
+  }
+
+  // Deteksi status online
+  const userStatusDatabaseRef = db.ref(`/users/${user.uid}/online`);
+  const connectedRef = db.ref(".info/connected");
+  connectedRef.on("value", (snap) => {
+    if (snap.val() === true) {
+      userStatusDatabaseRef.onDisconnect().set(false).then(() => {
+        userStatusDatabaseRef.set(true);
+      });
+    }
+  });
+
+  const currentUID = user.uid;
+  db.ref("users").on("value", snapshot => {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    userList.innerHTML = "";
+    snapshot.forEach(child => {
+      const data = child.val();
+      if (child.key !== currentUID && data.name.toLowerCase().includes(query)) {
+        const card = document.createElement("div");
+        card.className = "card";
+        const overall = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
+        card.innerHTML = `
+          <img src="${data.photo || 'https://via.placeholder.com/200x180?text=No+Image'}" alt="Foto">
+          <h3>${data.name}</h3>
+          <p>Overall Score: ${overall}</p>
+          <p>Status: <span style='color: ${data.online ? "limegreen" : "gray"}; font-weight: bold;'>${data.online ? "Online" : "Offline"}</span></p>
+          <button class="chat-btn" onclick="startChat('${child.key}', '${data.name}')">Chat</button>
+        `;
+        userList.appendChild(card);
+      }
+    });
+  });
+
+  document.getElementById("searchInput").addEventListener("input", () => {
+    db.ref("users").once("value").then(snapshot => {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      userList.innerHTML = "";
+      snapshot.forEach(child => {
+        const data = child.val();
+        if (child.key !== currentUID && data.name.toLowerCase().includes(query)) {
+          const card = document.createElement("div");
+          card.className = "card";
+          const overall = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
+          card.innerHTML = `
+            <img src="${data.photo || 'https://via.placeholder.com/200x180?text=No+Image'}" alt="Foto">
+            <h3>${data.name}</h3>
+            <p>Overall Score: ${overall}</p>
+            <p>Status: <span style='color: ${data.online ? "limegreen" : "gray"}; font-weight: bold;'>${data.online ? "Online" : "Offline"}</span></p>
+            <button class="chat-btn" onclick="startChat('${child.key}', '${data.name}')">Chat</button>
+          `;
+          userList.appendChild(card);
+        }
+      });
+    });
+  });
+});
+      const currentUID = user.uid;
+      db.ref("users").on("value", snapshot => {
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        userList.innerHTML = "";
+        snapshot.forEach(child => {
+          const data = child.val();
+          if (child.key !== currentUID && data.name.toLowerCase().includes(query)) {
+            const card = document.createElement("div");
+            card.className = "card";
+            const overall = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
+            card.innerHTML = `
+  <img src="${data.photo || 'https://via.placeholder.com/200x180?text=No+Image'}" alt="Foto">
+  <h3>${data.name}</h3>
+  <p>Overall Score: ${overall}</p>
+  <p>Status: <span style='color: ${data.online ? "limegreen" : "gray"}; font-weight: bold;'>${data.online ? "Online" : "Offline"}</span></p>
+  <button class="chat-btn" onclick="startChat('${child.key}', '${data.name}')">Chat</button>
+`;
+userList.appendChild(card);
+          }
+        });
+      });
+
+      document.getElementById("searchInput").addEventListener("input", () => {
+        db.ref("users").once("value").then(snapshot => {
+          const query = document.getElementById("searchInput").value.toLowerCase();
+          userList.innerHTML = "";
+          snapshot.forEach(child => {
+            const data = child.val();
+            if (child.key !== currentUID && data.name.toLowerCase().includes(query)) {
+              const card = document.createElement("div");
+              card.className = "card";
+              const overall = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
+              card.innerHTML = `
+                <img src="${data.photo || 'https://via.placeholder.com/200x180?text=No+Image'}" alt="Foto">
+                <h3>${data.name}</h3>
+                <p>Overall Score: ${overall}</p>
+                <button class="chat-btn" onclick="startChat('${child.key}', '${data.name}')">Chat</button>
+              `;
+              userList.appendChild(card);
+            }
+          });
+        });
+      });
+
+    function startChat(uid, name) {
+      const roomId = [firebase.auth().currentUser.uid, uid].sort().join("_");
+      window.location.href = `chat-room.html?room=${roomId}&name=${encodeURIComponent(name)}&uid=${uid}`;
+    }
+  </script>
+</body>
+</html>

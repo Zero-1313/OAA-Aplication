@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot OAA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Tombol Burger -->
+  <div class="burger" id="burgerBtn" onclick="toggleSidebar()">&#9776;</div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <a href="../OAA/dashboard.html">Dashboard</a>
+    <a href="#">Chat AI</a>
+    <a href="../Massage/list.html">Massage</a>
+    <a href="../index.html" onclick="logout()">Logout</a>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Chat Container -->
+  <div class="chat-container">
+    <h2>Chat AI</h2>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Tanyakan sesuatu..." onkeypress="handleKeyPress(event)">
+      <button onclick="sendMessage()">Kirim</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('show');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

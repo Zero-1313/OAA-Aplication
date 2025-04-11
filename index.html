@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OAA - Login</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0f4ff;
+    }
+    .opening-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #0d1117;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      z-index: 9999;
+      animation: fadeOut 3s forwards;
+      animation-delay: 2s;
+    }
+
+    .opening-logo {
+      font-size: 2.4rem;
+      font-weight: bold;
+      opacity: 0;
+      animation: fadeIn 1.5s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: scale(1.05); }
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; display: none; visibility: hidden; }
+    }
+
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 0.8rem;
+      background: #1e2a3a;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .success-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #0f0f0f;
+      color: #00ffcc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-family: monospace;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Opening Animation -->
+  <div class="opening-screen" id="openingScreen">
+    <div class="opening-logo">OAA ELITE SYSTEM</div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-box">
+      <h2 class="title">Login OAA</h2>
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5IIVDK0RaEjW32-1dykYkJTKp39uHaa8",
+      authDomain: "oaa-aplication.firebaseapp.com",
+      databaseURL: "https://oaa-aplication-default-rtdb.firebaseio.com/",
+      projectId: "oaa-aplication",
+      storageBucket: "oaa-aplication.appspot.com",
+      messagingSenderId: "879040519212",
+      appId: "1:879040519212:web:d6d01859fe1c7e38d24589"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        document.getElementById('openingScreen').style.display = 'none';
+      }, 3000);
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const uid = userCredential.user.uid;
+          return firebase.database().ref('users/' + uid).once('value');
+        })
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            localStorage.setItem("userdata", JSON.stringify(data));
+            showSuccessAnimation();
+          } else {
+            alert("Data siswa tidak ditemukan.");
+          }
+        })
+        .catch((error) => {
+          alert("Login gagal: " + error.message);
+        });
+    });
+
+    function showSuccessAnimation() {
+      const overlay = document.createElement('div');
+      overlay.classList.add('success-screen');
+      overlay.innerHTML = `
+        <h1>ACCESS GRANTED</h1>
+        <p>Redirecting to dashboard...</p>
+      `;
+      document.body.appendChild(overlay);
+      setTimeout(() => {
+        window.location.href = "OAA/dashboard.html";
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
