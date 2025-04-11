@@ -118,8 +118,10 @@
   <button class="burger" onclick="toggleSidebar()" style="z-index:1002; position:fixed; top:1rem; left:1rem; background:#1e2a3a; color:white; padding:0.5rem 1rem; border:none; border-radius:8px;">☰</button>
   <div class="sidebar" id="sidebar" style="left:-100vw">
     <button onclick="closeSidebar()" style="background:none;border:none;color:white;font-size:1.2rem;margin-bottom:1rem;margin-top:3rem;">← Kembali</button>
-    <a href="../dashboard.html" style="display:block;color:white;margin-bottom:1rem;text-decoration:none;">🏠 Dashboard</a>
-    <a href="#" onclick="logout()" style="display:block;color:white;text-decoration:none;">🚪 Logout</a>
+    <a href="../dashboard.html" style="display:block;color:white;margin-bottom:1rem;text-decoration:none;">Dashboard</a>
+    <a href="../Chat AI/index.html" style="display:block;color:white;margin-bottom:1rem;text-decoration:none;">Chat AI</a>
+    <a href="#" style="display:block;color:white;margin-bottom:1rem;text-decoration:none;">Massage</a>
+    <a href="#" onclick="logout()" style="display:block;color:white;text-decoration:none;">Logout</a>
   </div>
   <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
   <h1>Daftar Siswa</h1>
@@ -137,7 +139,7 @@ function closeSidebar() {
 }
 function logout() {
   firebase.auth().signOut().then(() => {
-    window.location.href = "../login.html";
+    window.location.href = "../index.html";
   });
 }
 
@@ -158,7 +160,7 @@ const firebaseConfig = {
 
     auth.onAuthStateChanged(user => {
   if (!user) {
-    window.location.href = "../login.html";
+    window.location.href = "../index.html";
     return;
   }
 
