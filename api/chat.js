@@ -6,7 +6,7 @@ export default function handler(req, res) {
   const { prompt } = req.body;
 
   // Jawaban dummy sementara
-  const reply = `Bot menjawab: ${prompt}`;
+  const reply = `${prompt}`;
 
   res.status(200).json({
     candidates: [
