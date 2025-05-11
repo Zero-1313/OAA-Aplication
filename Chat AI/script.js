@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = "AIzaSyDiCRDWp69dCZDPkJeVqn6CO4cvI9En4ho"; // API Key Gemini
+const GEMINI_API_KEY = "AIzaSyAJLJd0UIJBh0Ls0qYkfuBpGgypDY1S1Fk"; // API Key Gemini
 
 async function sendMessage() {
     let userInput = document.getElementById("userInput").value;
