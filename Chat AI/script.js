@@ -13,7 +13,7 @@ async function sendMessage() {
     chatBox.scrollTop = chatBox.scrollHeight;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -33,7 +33,7 @@ async function sendMessage() {
         
     } catch (error) {
         console.error("Error:", error);
-        chatBox.innerHTML += `<div class="message bot-message">Terjadi kesalahan saat menghubungi server, periksa koneksi internet Anda.</div>`;
+        chatBox.innerHTML += `<div class="message bot-message">Terjadi kesalahan saat menghubungi server, Periksa Jaringan internet anda :)</div>`;
     }
 }
 
