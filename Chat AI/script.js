@@ -33,7 +33,7 @@ async function sendMessage() {
         
     } catch (error) {
         console.error("Error:", error);
-        chatBox.innerHTML += `<div class="message bot-message">Terjadi kesalahan saat menghubungi server, Periksa Jaringan internet anda :)</div>`;
+        chatBox.innerHTML += `<div class="message bot-message">Terjadi kesalahan saat menghubungi server, periksa koneksi internet Anda.</div>`;
     }
 }
 
