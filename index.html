@@ -147,9 +147,9 @@
           if (snapshot.exists()) {
             const data = snapshot.val();
             localStorage.setItem("userdata", JSON.stringify(data));
-            showSuccessAnimation();
+            showSuccessAnimation(data.role);
           } else {
-            alert("Data siswa tidak ditemukan.");
+            alert("Data user tidak ditemukan di database.");
           }
         })
         .catch((error) => {
@@ -157,7 +157,7 @@
         });
     });
 
-    function showSuccessAnimation() {
+    function showSuccessAnimation(role) {
       const overlay = document.createElement('div');
       overlay.classList.add('success-screen');
       overlay.innerHTML = `
@@ -166,7 +166,11 @@
       `;
       document.body.appendChild(overlay);
       setTimeout(() => {
-        window.location.href = "OAA/dashboard.html";
+        if (role === "guru") {
+          window.location.href = "dashboardguru.html";
+        } else {
+          window.location.href = "dashboard.html";
+        }
       }, 3000);
     }
   </script>
