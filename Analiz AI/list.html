@@ -157,7 +157,6 @@
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
     <a href="#">🏠 Dashboard</a>
-    <a href="#">⚙️ Pengaturan</a>
     <a href="#">🔐 Logout</a>
     <button onclick="toggleSidebar()" style="margin-top: 2rem; background:#f44336; color:white; border:none; padding:0.5rem; border-radius:6px;">Tutup</button>
   </div>
@@ -171,12 +170,12 @@
 
   <!-- INFO BOX -->
   <div id="infoBox">
-    <b>Info AI</b><br>
-    - <b>DeepSeek:</b> AI ringan untuk siswa.<br>
-    - <b>Gemini:</b> AI Google cepat & logis.<br>
-    - <b>InternVL3:</b> Bisa analisis gambar.<br>
-    - <b>EliteGuru:</b> AI khusus guru.<br>
-    - <b>FunAI:</b> AI untuk hiburan.
+    <b>Ringkasan AI</b><br>
+    - <b>DeepSeek:</b> AI ringan untuk siswa dengan ke akuratan 78%.<br>
+    - <b>Gemini:</b> AI Google cepat & logis dengan ke akurat 86%.<br>
+    - <b>InternVL3:</b> Bisa analisis gambar dengan ke akuratan 57%.<br>
+    - <b>VAR AI:</b> AI khusus untuk analisis tugas murid.<br>
+    - <b>AI Karakter:</b> AI untuk hiburan dengan tingkat ke akuratan 89%.
   </div>
 
   <!-- MENU -->
@@ -184,7 +183,6 @@
     <select onchange="changeCategory(this.value)">
       <option value="belajar">🎓 AI Belajar</option>
       <option value="karakter">🎭 Karakter</option>
-      <option value="hiburan">🎮 Hiburan</option>
     </select>
 
     <select onchange="setRole(this.value)">
@@ -200,7 +198,7 @@
       <div class="ai-name">DeepSeek</div>
       <div class="tag siswa">Siswa</div>
     </a>
-    <a class="ai-card siswa-only" href="gemini.html">
+    <a class="ai-card siswa-only" href="../Chat AI/index.html">
       <img src="img/gemini.png" alt="Gemini">
       <div class="ai-name">Gemini</div>
       <div class="tag siswa">Siswa</div>
