@@ -1,42 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OAA Mobile Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAA - Dashboard</title>
   <style>
     body {
       margin: 0;
+      background: #f0f4ff;
       font-family: 'Poppins', sans-serif;
-      background-color: #f0f4ff;
       color: #1e2a3a;
     }
-    .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 1rem;
-      background: #1e2a3a;
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .burger {
-      font-size: 1.5rem;
-      cursor: pointer;
-      position: fixed;
-      top: 1rem;
-      left: 1rem;
-      z-index: 1101;
+    header {
       background: #1e2a3a;
       color: white;
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 1001;
+    }
+    .burger {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.4rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+      z-index: 1002;
     }
     .sidebar {
       position: fixed;
@@ -47,12 +43,19 @@
       height: 100vh;
       background: #1e2a3a;
       color: #fff;
-      padding: 4rem 1rem 2rem;
+      padding: 4rem 1rem;
       transition: all 0.3s ease;
       z-index: 1000;
     }
     .sidebar.open {
       left: 0;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      margin: 1rem 0;
+      text-decoration: none;
+      font-weight: bold;
     }
     .overlay {
       position: fixed;
@@ -60,83 +63,95 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 998;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
       display: none;
     }
     .overlay.show {
       display: block;
     }
-    .sidebar a {
-      display: block;
-      color: #fff;
-      text-decoration: none;
-      margin: 1rem 0;
-      font-size: 1.1rem;
+    .profile-section {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
     }
-    .content {
-      padding: 1rem;
-      margin-top: 1rem;
+    .profile-section img {
+      width: 140px;
+      height: auto;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
-    .profile-img {
-      width: 100%;
-      max-width: 250px;
-      border-radius: 20px;
-      display: block;
-      margin: 1rem auto;
+    .profile-section h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      max-width: 500px;
+      margin: 2rem auto;
+      padding: 0 1rem;
     }
     .card {
-      background: #fff;
-      border-radius: 16px;
+      background: white;
+      border-left: 5px solid #0046ff;
+      border-radius: 10px;
       padding: 1rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      margin-bottom: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .card h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1rem;
-      color: #1e2a3a;
+      margin: 0 0 0.4rem;
+      font-size: 0.95rem;
+      color: #555;
     }
     .card p {
       margin: 0;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: bold;
     }
-    @media (min-width: 600px) {
-      .content {
-        max-width: 600px;
-        margin: auto;
+    @media(min-width: 600px) {
+      .data-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 </head>
 <body>
-
-  <div class="burger" id="burgerBtn" onclick="toggleSidebar()">&#9776;</div>
-
-  <div class="header">
-    <h2>OAA</h2>
-  </div>
-
   <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
   <div class="sidebar" id="sidebar">
+    <button style="background:none;border:none;color:#fff;font-size:1.2rem;margin-bottom:1rem;cursor:pointer;" onclick="closeSidebar()">← Kembali</button>
     <a href="#">Dashboard</a>
-    <a href="../Chat AI/index.html">Chat AI</a>
+    <a href="../Analiz AI/index.html">Analiz AI</a>
+    <a href="umumguru.html">Tulis Pengumuman</a>
     <a href="../Massage/list.html">Massage</a>
-    <a href="#" onclick="logout()">Logout</a>
+    <a href="../index.html" onclick="logout()">Logout</a>
   </div>
 
-  <div class="content">
-    <img src="https://i.ibb.co.com/N69Qb8Y9/6891677a-e217-4681-8f8c-4ebdc5d9ccf6.jpg" alt="Profile" class="profile-img" id="profileImg">
-    <div class="card"><h3>Nama</h3><p id="studentName">Loading...</p></div>
-    <div class="card"><h3>Peringkat</h3><p id="rank"># -</p></div>
-    <div class="card"><h3>Kemampuan Akademik</h3><p id="academic">-</p></div>
-    <div class="card"><h3>Kemampuan Fisik</h3><p id="physical">-</p></div>
-    <div class="card"><h3>IQ / Kecerdasan</h3><p id="iq">-</p></div>
+  <header>
+    <button class="burger" onclick="toggleSidebar()">☰</button>
+    OAA SYSTEM
+  </header>
+
+  <div class="profile-section">
+    <img src="" alt="Foto Siswa" id="profilePhoto">
+    <h2 id="studentName">Nama Guru</h2>
+  </div>
+
+  <div class="data-grid">
+    <div class="card"><h3>Academic</h3><p id="academic">-</p></div>
+    <div class="card"><h3>Physical</h3><p id="physical">-</p></div>
+    <div class="card"><h3>IQ</h3><p id="iq">-</p></div>
     <div class="card"><h3>Adaptability</h3><p id="adaptability">-</p></div>
-    <div class="card"><h3>Kontribusi Sosial</h3><p id="social">-</p></div>
-    <div class="card"><h3>Skor Keseluruhan</h3><p id="overall">-</p></div>
+    <div class="card"><h3>Social Contribution</h3><p id="social">-</p></div>
+    <div class="card"><h3>Overall Score</h3><p id="overall">-</p></div>
   </div>
 
   <script>
@@ -145,12 +160,10 @@
       authDomain: "oaa-aplication.firebaseapp.com",
       databaseURL: "https://oaa-aplication-default-rtdb.firebaseio.com/",
       projectId: "oaa-aplication",
-      storageBucket: "oaa-aplication.firebasestorage.app",
+      storageBucket: "oaa-aplication.appspot.com",
       messagingSenderId: "879040519212",
-      appId: "1:879040519212:web:d6d01859fe1c7e38d24589",
-      measurementId: "G-FRTYCPT5ZY"
+      appId: "1:879040519212:web:d6d01859fe1c7e38d24589"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
@@ -162,46 +175,36 @@
           const data = snapshot.val();
           if (data) {
             document.getElementById('studentName').textContent = data.name;
+            document.getElementById('rank').textContent = data.rank || "-";
             document.getElementById('academic').textContent = data.academic;
             document.getElementById('physical').textContent = data.physical;
             document.getElementById('iq').textContent = data.iq;
             document.getElementById('adaptability').textContent = data.adaptability;
             document.getElementById('social').textContent = data.social;
-            const overall = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
-            document.getElementById('overall').textContent = overall;
+            document.getElementById('overall').textContent = Math.round((data.academic + data.physical + data.iq + data.adaptability + data.social) / 5);
+            document.getElementById('profilePhoto').src = data.photo || "https://via.placeholder.com/140x180?text=Profile";
           }
         });
       } else {
-        window.location.href = '../index.html';
+        window.location.href = "../index.html";
       }
     });
 
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = '../index.html';
-      });
-    }
-
     function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('overlay');
-      const burgerBtn = document.getElementById('burgerBtn');
-
-      const isOpen = sidebar.classList.contains('open');
-      if (!isOpen) {
-        sidebar.classList.add('open');
-        overlay.classList.add('show');
-        burgerBtn.innerHTML = '&times;';
-      } else {
-        closeSidebar();
-      }
+      document.getElementById("sidebar").classList.add("open");
+      document.getElementById("overlay").classList.add("show");
     }
 
     function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('overlay').classList.remove('show');
-      document.getElementById('burgerBtn').innerHTML = '&#9776;';
+      document.getElementById("sidebar").classList.remove("open");
+      document.getElementById("overlay").classList.remove("show");
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "../index.html";
+      });
     }
   </script>
 </body>
-</html>
+      </html>
