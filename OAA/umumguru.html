@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel Admin - Pengumuman</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom right, #e8ecf7, #ffffff);
+      margin: 0;
+      padding: 1rem;
+      color: #1e2a3a;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 1rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      margin-top: 2rem;
+      padding: 0.75rem;
+      background: #1e2a3a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #32435a;
+    }
+    .success {
+      margin-top: 1rem;
+      color: green;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>✍️ Tambah Pengumuman</h2>
+    <label for="title">Judul</label>
+    <input type="text" id="title" placeholder="Judul pengumuman">
+
+    <label for="content">Isi Pengumuman</label>
+    <textarea id="content" rows="5" placeholder="Tulis isi pengumuman..."></textarea>
+
+    <label for="sender">Nama Pengirim</label>
+    <input type="text" id="sender" placeholder="Contoh: Pak Rudi">
+
+    <button onclick="submitAnnouncement()">Kirim Pengumuman</button>
+    <div class="success" id="successMsg"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5IIVDK0RaEjW32-1dykYkJTKp39uHaa8",
+      authDomain: "oaa-aplication.firebaseapp.com",
+      databaseURL: "https://oaa-aplication-default-rtdb.firebaseio.com/",
+      projectId: "oaa-aplication",
+      storageBucket: "oaa-aplication.appspot.com",
+      messagingSenderId: "879040519212",
+      appId: "1:879040519212:web:d6d01859fe1c7e38d24589"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function submitAnnouncement() {
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const sender = document.getElementById("sender").value.trim();
+      const successMsg = document.getElementById("successMsg");
+
+      if (!title || !content || !sender) {
+        successMsg.style.color = "red";
+        successMsg.textContent = "Semua kolom wajib diisi.";
+        return;
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      const id = Date.now();
+
+      db.ref("announcements/" + id).set({
+        title,
+        content,
+        postedBy: sender,
+        date: today
+      }).then(() => {
+        successMsg.style.color = "green";
+        successMsg.textContent = "Pengumuman berhasil dikirim!";
+        document.getElementById("title").value = "";
+        document.getElementById("content").value = "";
+        document.getElementById("sender").value = "";
+      }).catch(err => {
+        successMsg.style.color = "red";
+        successMsg.textContent = "Gagal mengirim pengumuman.";
+        console.error(err);
+      });
+    }
+  </script>
+
+</body>
+</html>
