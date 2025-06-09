@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OAA - AI Gambar</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #f3f6fd;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: #1e2a3a;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    #chatBox {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      padding: 0.9rem;
+      border-radius: 12px;
+      max-width: 85%;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .user-message {
+      background: #dceeff;
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .bot-message {
+      background: #fff;
+      align-self: flex-start;
+      border-left: 4px solid #1e2a3a;
+    }
+
+    .message img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    #inputSection {
+      padding: 1rem;
+      border-top: 1px solid #ccc;
+      background: white;
+    }
+
+    #previewContainer {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    #previewImage {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+
+    #inputRow {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 0.7rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    #imageInput {
+      display: none;
+    }
+
+    label[for="imageInput"],
+    button {
+      background: #1e2a3a;
+      color: white;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      font-size: 0.9rem;
+    }
+
+    .remove-preview {
+      background: red;
+      color: white;
+      padding: 0.3rem 0.6rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>OAA AI - VL3</header>
+
+  <div id="chatBox"></div>
+
+  <div id="inputSection">
+    <div id="previewContainer">
+      <img id="previewImage" />
+      <button class="remove-preview" onclick="removePreview()">X</button>
+    </div>
+
+    <div id="inputRow">
+      <label for="imageInput">📷</label>
+      <input type="file" id="imageInput" accept="image/*">
+      <input type="text" id="userInput" placeholder="Tanyakan sesuatu..." onkeypress="if(event.key==='Enter') handleSend()">
+      <button onclick="handleSend()">Kirim</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENROUTER_API_KEY = "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";
+    const IMGBB_API_KEY = "f2bf08a300fa030d8c0efb8f70a0bff0";
+
+    const imageInput = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("previewContainer");
+    const previewImage = document.getElementById("previewImage");
+    let selectedImageFile = null;
+
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+      if (file) {
+        selectedImageFile = file;
+        previewImage.src = URL.createObjectURL(file);
+        previewContainer.style.display = "flex";
+      }
+    });
+
+    function removePreview() {
+      selectedImageFile = null;
+      previewContainer.style.display = "none";
+      previewImage.src = "";
+      imageInput.value = "";
+    }
+
+    async function handleSend() {
+      const text = document.getElementById("userInput").value.trim();
+      if (!text && !selectedImageFile) return;
+
+      const chatBox = document.getElementById("chatBox");
+      let imageUrl = null;
+
+      // Upload gambar ke imgbb
+      if (selectedImageFile) {
+        const base64 = await toBase64(selectedImageFile);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: "POST",
+          body: new URLSearchParams({ image: base64.split(",")[1] })
+        });
+        const result = await res.json();
+        imageUrl = result.data.url;
+      }
+
+      // Tampilkan pesan user
+      addMessage(text, imageUrl, "user");
+      document.getElementById("userInput").value = "";
+      removePreview();
+
+      // Kirim ke OpenRouter
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "opengvlab/internvl3-14b:free",
+            messages: [{
+              role: "user",
+              content: [
+                ...(imageUrl ? [{ type: "image_url", image_url: { url: imageUrl } }] : []),
+                { type: "text", text }
+              ]
+            }]
+          })
+        });
+
+        const data = await res.json();
+        const reply = data.choices?.[0]?.message?.content || "Maaf, tidak bisa menjawab untuk saat ini.";
+        addMessage(reply, null, "bot");
+      } catch (err) {
+        console.error(err);
+        addMessage("⚠️ Terjadi kesalahan saat menghubungi server.", null, "bot");
+      }
+    }
+
+    function addMessage(text, imgUrl, sender) {
+      const chatBox = document.getElementById("chatBox");
+      let html = `<div class="message ${sender}-message">`;
+      if (imgUrl) html += `<img src="${imgUrl}" alt="Gambar terkirim" />`;
+      if (text) html += `<div>${text}</div>`;
+      html += `</div>`;
+      chatBox.innerHTML += html;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+
+</body>
+</html>

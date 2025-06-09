@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OAA Chat - DeepSeek</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #1e2a3a;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    #chatBox {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .message {
+      padding: 0.8rem;
+      border-radius: 10px;
+      max-width: 80%;
+      white-space: pre-wrap;
+    }
+    .user-message {
+      background: #d9edff;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .bot-message {
+      background: #ffffff;
+      align-self: flex-start;
+      border-left: 4px solid #1e2a3a;
+    }
+    #inputSection {
+      display: flex;
+      padding: 1rem;
+      background: #fff;
+      border-top: 1px solid #ccc;
+    }
+    #userInput {
+      flex: 1;
+      padding: 0.7rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button {
+      margin-left: 0.5rem;
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      background: #1e2a3a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>OAA Chat - DeepSeek</header>
+
+  <div id="chatBox"></div>
+
+  <div id="inputSection">
+    <input type="text" id="userInput" placeholder="Tulis pesan..." onkeypress="handleKeyPress(event)" />
+    <button onclick="sendMessage()">Kirim</button>
+  </div>
+
+  <script>
+    const API_KEY = "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"; // Ganti jika perlu
+
+    function markdownToHTML(text) {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.*?)\*/g, "<em>$1</em>");
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chatBox = document.getElementById("chatBox");
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      chatBox.innerHTML += `<div class="message user-message">${userText}</div>`;
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "deepseek/deepseek-chat-v3-0324:free",
+            messages: [{ role: "user", content: userText }]
+          })
+        });
+
+        const data = await response.json();
+        const reply = data.choices?.[0]?.message?.content || "Maaf, keterbatasan fitur!";
+        const htmlReply = markdownToHTML(reply);
+        chatBox.innerHTML += `<div class="message bot-message">${htmlReply}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+      } catch (err) {
+        console.error(err);
+        chatBox.innerHTML += `<div class="message bot-message">Terjadi kesalahan saat menghubungi server.</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === "Enter") sendMessage();
+    }
+  </script>
+
+</body>
+</html>

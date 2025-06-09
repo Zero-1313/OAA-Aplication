@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EliteBot - Guru Anime</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4ff;
+      overflow: hidden;
+    }
+    #opening {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom right, #1e2a3a, #2a3f70);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+      animation: fadeOut 2s ease-in-out 3.5s forwards;
+    }
+    #opening h1 {
+      font-size: 2.4rem;
+      letter-spacing: 2px;
+      animation: zoomIn 1s ease-out;
+    }
+    #opening p {
+      font-size: 1rem;
+      color: #ccc;
+      margin-top: 1rem;
+      animation: fadeIn 2s ease 1s both;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+    #app {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #1e2a3a;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+    #chatBox {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 80%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 10px;
+      word-wrap: break-word;
+      animation: fadeIn 0.3s ease;
+    }
+    .user {
+      background: #dceeff;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .bot {
+      background: #ffffff;
+      align-self: flex-start;
+      border-left: 4px solid #1e2a3a;
+    }
+    #inputArea {
+      display: flex;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
+      background: #fff;
+    }
+    #userInput {
+      flex: 1;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-left: 0.5rem;
+      background: #1e2a3a;
+      color: white;
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="opening">
+    <h1>Arisu Sakayanagi</h1>
+    <p>Sistem AI karakter Anime</p>
+  </div>
+
+  <audio id="startupSound" src="audio/123.mp3" preload="auto"></audio>
+  <audio id="bgMusic" src="audio/123.mp3" preload="auto" loop></audio>
+
+  <div id="app">
+    <header>Arisu Sakayanagi</header>
+    <div id="chatBox"></div>
+    <div id="inputArea">
+      <input type="text" id="userInput" placeholder="Tanyakan sesuatu..." onkeypress="handleKeyPress(event)">
+      <button onclick="sendMessage()">Kirim</button>
+    </div>
+  </div>
+
+  <script>
+    const OPENROUTER_API_KEY = "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";
+    const MODEL = "deepseek/deepseek-chat-v3-0324:free";
+
+    setTimeout(() => {
+      document.getElementById("app").style.display = "flex";
+      document.getElementById("startupSound").play();
+      document.getElementById("bgMusic").volume = 0.4;
+      document.getElementById("bgMusic").play();
+    }, 4000);
+
+    function parseMarkdown(text) {
+      return text
+        .replace(/\*(.*?)\*/g, "<i>$1</i>")
+        .replace(/\/(.*?)\//g, "<i>$1</i>");
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatBox = document.getElementById("chatBox");
+      chatBox.innerHTML += `<div class="message user">${text}</div>`;
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const typing = document.createElement("div");
+      typing.className = "message bot";
+      typing.textContent = "Arisu sedang berpikir~";
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [
+              {
+                role: "system",
+                content: "Kamu adalah Sakayanagi Arisu dari Classroom of the Elite. Kamu sangat pintar, elegan, dan suka berbicara sopan dengan nada pelan, sering tertawa pelan 'fufu~', dan suka menyindir dengan halus. Jawablah dengan gaya khas Sakayanagi dan buat percakapan seperti manusia asli."
+              },
+              { role: "user", content: text }
+            ]
+          })
+        });
+
+        const data = await res.json();
+        const replyRaw = data.choices?.[0]?.message?.content || "Maaf, aku tidak bisa menjawab untuk saat ini~";
+        const reply = parseMarkdown(replyRaw);
+
+        typing.remove();
+        const botMessage = document.createElement("div");
+        botMessage.className = "message bot";
+        botMessage.innerHTML = reply;
+        chatBox.appendChild(botMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        speak(replyRaw);
+      } catch (error) {
+        typing.remove();
+        chatBox.innerHTML += `<div class="message bot">Terjadi kesalahan jaringan atau server 💔</div>`;
+      }
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") sendMessage();
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance(text);
+        const voices = speechSynthesis.getVoices();
+        const jap = voices.find(v => v.lang === "ja-JP") || voices.find(v => v.lang.startsWith("en")) || voices[0];
+        utter.voice = jap;
+        utter.lang = jap?.lang || "ja-JP";
+        utter.pitch = 1.3;
+        utter.rate = 1.0;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+      }
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = () => {};
+    }
+  </script>
+
+</body>
+</html>
